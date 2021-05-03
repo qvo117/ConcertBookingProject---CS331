@@ -35,17 +35,15 @@ public class Concert implements Comparable<Concert> {
 	private Set<Performer> performers = new HashSet<Performer>();
 	private String blurb;
     
-	public Concert(Long id, String title, String imageName, Set<LocalDateTime> dates, Set<Performer> performers, String blurb) {
+	public Concert(Long id, String title, String imageName, String blurb) {
         this.id = id;
         this.title = title;
         this.imageName = imageName;
-        this.dates = dates;
-        this.performers = performers;
         this.blurb = blurb;
     }
 
-    public Concert(String title, String imageName, Set<LocalDateTime> dates, Set<Performer> performers, String blurb) {
-        this(null, title, imageName, dates, performers, blurb);
+    public Concert(String title, String imageName, String blurb) {
+        this(null, title, imageName, blurb);
     }
 
     public Concert() {

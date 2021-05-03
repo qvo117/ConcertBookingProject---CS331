@@ -18,15 +18,14 @@ public class User {
 	
 	public User() {}
 	
-	public User(Long id, String username, String password, Long version) {
+	public User(Long id, String username, String password) {
 		this.id = id;
 		this.username = username;
 		this.password = password;
-		this.version = version;
 	}
 	
-	public User(String username, String password, Long version) {
-		this(null, username, password, version);
+	public User(String username, String password) {
+		this(null, username, password);
 	}
 	
 	public Long getId() {
