@@ -5,7 +5,7 @@ import asg.concert.service.domain.BookingRequest;
 
 public class BookingRequestMapper {
 	
-	static BookingRequest toDomainModel(BookingRequestDTO dtoBookingRequest) {
+	public static BookingRequest toDomainModel(BookingRequestDTO dtoBookingRequest) {
 		BookingRequest bookingRequest = new BookingRequest(
 				dtoBookingRequest.getConcertId(),
 				dtoBookingRequest.getDate(),
@@ -13,7 +13,7 @@ public class BookingRequestMapper {
 		return bookingRequest;
 	}
 	
-	static BookingRequestDTO toDto(BookingRequest bookingRequest) {
+	public static BookingRequestDTO toDto(BookingRequest bookingRequest) {
 		BookingRequestDTO dtoBookingRequest = new BookingRequestDTO(
 				bookingRequest.getConcertId(),
 				bookingRequest.getDate(),

@@ -10,7 +10,7 @@ import asg.concert.common.dto.SeatDTO;
 
 public class BookingMapper {
 	
-	static Booking toDomainModel(BookingDTO dtoBooking) {
+	public static Booking toDomainModel(BookingDTO dtoBooking) {
 		List<Seat> seats = new ArrayList<>();
 		List<SeatDTO> seatsDTO = new ArrayList<>();
 		seatsDTO = dtoBooking.getSeats();
@@ -25,7 +25,7 @@ public class BookingMapper {
 		return booking;
 	}
 	
-	static BookingDTO toDto(Booking booking) {
+	public static BookingDTO toDto(Booking booking) {
 		List<SeatDTO> seatsDTO = new ArrayList<>();
 		List<Seat> seats = new ArrayList<>();
 		seats = booking.getSeats();

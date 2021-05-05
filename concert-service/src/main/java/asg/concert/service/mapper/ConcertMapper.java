@@ -4,7 +4,7 @@ import asg.concert.common.dto.ConcertDTO;
 import asg.concert.service.domain.Concert;
 
 public class ConcertMapper {
-	static Concert toDomainModel(ConcertDTO dtoConcert) {
+	public static Concert toDomainModel(ConcertDTO dtoConcert) {
 		Concert newConcert = new Concert(
 				dtoConcert.getId(), 
 				dtoConcert.getTitle(), 
@@ -13,7 +13,7 @@ public class ConcertMapper {
 		return newConcert;
 	}
 	
-	static ConcertDTO toDto(Concert concert) {
+	public static ConcertDTO toDto(Concert concert) {
 		ConcertDTO dtoConcert = new ConcertDTO(
 				concert.getId(),
 				concert.getTitle(),

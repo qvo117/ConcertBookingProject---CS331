@@ -4,7 +4,7 @@ import asg.concert.common.dto.ConcertInfoSubscriptionDTO;
 import asg.concert.service.domain.ConcertInfoSubscription;
 
 public class ConcertInfoSubscriptionMapper {
-	static ConcertInfoSubscription toDomainModel(ConcertInfoSubscriptionDTO dto) {
+	public static ConcertInfoSubscription toDomainModel(ConcertInfoSubscriptionDTO dto) {
 		ConcertInfoSubscription sub = new ConcertInfoSubscription(
 				dto.getConcertId(),
 				dto.getDate(),
@@ -12,7 +12,7 @@ public class ConcertInfoSubscriptionMapper {
 		return sub;
 	}
 	
-	static ConcertInfoSubscriptionDTO toDto(ConcertInfoSubscription sub) {
+	public static ConcertInfoSubscriptionDTO toDto(ConcertInfoSubscription sub) {
 		ConcertInfoSubscriptionDTO dto = new ConcertInfoSubscriptionDTO(
 				sub.getConcertId(),
 				sub.getDate(),
