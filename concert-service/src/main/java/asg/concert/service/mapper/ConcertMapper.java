@@ -4,21 +4,21 @@ import asg.concert.common.dto.ConcertDTO;
 import asg.concert.service.domain.Concert;
 
 public class ConcertMapper {
-	static Concert toDomainModel(ConcertDTO dto) {
+	static Concert toDomainModel(ConcertDTO dtoConcert) {
 		Concert newConcert = new Concert(
-				dto.getId(), 
-				dto.getTitle(), 
-				dto.getImageName(), 
-				dto.getBlurb());
+				dtoConcert.getId(), 
+				dtoConcert.getTitle(), 
+				dtoConcert.getImageName(), 
+				dtoConcert.getBlurb());
 		return newConcert;
 	}
 	
 	static ConcertDTO toDto(Concert concert) {
-		ConcertDTO dto = new ConcertDTO(
+		ConcertDTO dtoConcert = new ConcertDTO(
 				concert.getId(),
 				concert.getTitle(),
 				concert.getImageName(),
 				concert.getBlurb());
-		return dto;
+		return dtoConcert;
 	}
 }

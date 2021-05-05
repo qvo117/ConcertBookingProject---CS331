@@ -41,6 +41,11 @@ public class Seat {
 		this(null, label, isBooked, date, price);
 	}
 	
+	public Seat(String label, BigDecimal price) {
+		this.label = label;
+        this.price = price;
+	}
+	
 	public Long getId() {
         return id;
     }
@@ -115,7 +120,7 @@ public class Seat {
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 31).
+        return new HashCodeBuilder(17, 37).
                 append(label).hashCode();
     }
 

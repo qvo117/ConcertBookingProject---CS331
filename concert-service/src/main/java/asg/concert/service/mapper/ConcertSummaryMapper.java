@@ -4,11 +4,11 @@ import asg.concert.common.dto.ConcertSummaryDTO;
 import asg.concert.service.domain.ConcertSummary;
 
 public class ConcertSummaryMapper {
-	static ConcertSummary toDomainModel(ConcertSummaryDTO dto) {
+	static ConcertSummary toDomainModel(ConcertSummaryDTO dtoSummary) {
 		ConcertSummary summary = new ConcertSummary(
-				dto.getId(),
-				dto.getTitle(),
-				dto.getImageName());
+				dtoSummary.getId(),
+				dtoSummary.getTitle(),
+				dtoSummary.getImageName());
 		return summary;
 	}
 	

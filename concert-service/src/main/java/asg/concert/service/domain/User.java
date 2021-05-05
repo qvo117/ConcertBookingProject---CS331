@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @Entity
+@Table(name = "USERS")
 public class User {
 	
 	@Id
@@ -75,14 +76,17 @@ public class User {
             return true;
 
         User rhs = (User) obj;
-        return new EqualsBuilder().
-                append(username, rhs.username).
-                isEquals();
+        return new EqualsBuilder()
+        		.append(username, rhs.username)
+                .append(password, rhs.password)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 31).
-                append(username).hashCode();
+        return new HashCodeBuilder(17, 37)
+        		.append(username)
+                .append(password)
+                .toHashCode();
     }
 }

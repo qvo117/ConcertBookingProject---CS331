@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import asg.concert.common.jackson.*;
 
 @Entity
+@Table(name = "CONCERTS")
 public class Concert implements Comparable<Concert> {
 	
 	@Id
@@ -25,16 +26,19 @@ public class Concert implements Comparable<Concert> {
 	@Column(name = "IMAGE_NAME")
 	private String imageName;
 	
+	private String blurb;
+	
 	@ElementCollection
 	@CollectionTable(name = "CONCERT_DATES", joinColumns = @JoinColumn(name = "CONCERT_ID"))
 	@Column(name = "DATE")
 	private Set<LocalDateTime> dates = new HashSet<LocalDateTime>();
 	
 	@ManyToMany
-	@JoinTable(name = "CONCERT_PERFORMER")
+	@JoinTable(name = "CONCERT_PERFORMER", 
+	joinColumns = @JoinColumn(name = "CONCERT_ID"),
+	inverseJoinColumns =  @JoinColumn(name = "PERFORMER_ID"))
 	private Set<Performer> performers = new HashSet<Performer>();
-	private String blurb;
-    
+	
 	public Concert(Long id, String title, String imageName, String blurb) {
         this.id = id;
         this.title = title;
@@ -72,6 +76,14 @@ public class Concert implements Comparable<Concert> {
     public void setImageName(String imageName) {
     	this.imageName = imageName;
     }
+    
+    public String getBlurb() {
+        return blurb;
+    }
+
+    public void setBlurb(String blurb) {
+        this.blurb = blurb;
+    }
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -87,12 +99,8 @@ public class Concert implements Comparable<Concert> {
         return performers;
     }
     
-    public String getBlurb() {
-        return blurb;
-    }
-
-    public void setBlurb(String blurb) {
-        this.blurb = blurb;
+    public void setPerformers(Set<Performer> performers) {
+        this.performers = performers;
     }
 
     @Override

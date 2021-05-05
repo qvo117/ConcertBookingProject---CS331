@@ -48,6 +48,9 @@ public class ConcertSummary {
         buffer.append(id);
         buffer.append(", title: ");
         buffer.append(title);
+        buffer.append(", image: ");
+        buffer.append(imageName);
+        
 
         return buffer.toString();
     }

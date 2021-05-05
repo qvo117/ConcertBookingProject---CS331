@@ -1,5 +1,8 @@
 package asg.concert.service.domain;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.*;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -13,6 +16,7 @@ import asg.concert.common.types.*;
  * of an image file, and a genre.
  */
 @Entity
+@Table(name = "PERFORMERS")
 public class Performer {
 
 	@Id
@@ -26,6 +30,9 @@ public class Performer {
     @Enumerated(EnumType.STRING)
     private Genre genre;
     private String blurb;
+    
+    @ManyToMany(mappedBy ="performers")
+	private Set<Concert> concerts = new HashSet<Concert>();
 
     public Performer() { }
 
@@ -80,6 +87,14 @@ public class Performer {
     public void setBlurb(String blurb) {
         this.blurb = blurb;
     }
+    
+    public Set<Concert> getConcerts() {
+        return concerts;
+    }
+    
+    public void setConcerts(Set<Concert> concerts) {
+        this.concerts = concerts;
+    }
 
     @Override
     public String toString() {
@@ -88,7 +103,7 @@ public class Performer {
         buffer.append(id);
         buffer.append(", name: ");
         buffer.append(name);
-        buffer.append(", s3 image: ");
+        buffer.append(", image: ");
         buffer.append(imageUri);
         buffer.append(", genre: ");
         buffer.append(genre.toString());
