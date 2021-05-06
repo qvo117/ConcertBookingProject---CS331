@@ -24,7 +24,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
-
 public class ConcertResourceIT {
 
     private static final String WEB_SERVICE_URI = "http://localhost:10000/services/concert-service";

@@ -17,6 +17,9 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
+import asg.concert.common.dto.PerformerDTO;
+import asg.concert.service.domain.Performer;
+import asg.concert.service.mapper.PerformerMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +31,7 @@ import asg.concert.service.mapper.ConcertMapper;
 import asg.concert.service.mapper.ConcertSummaryMapper;
 import asg.concert.service.common.Config;
 
-@Path("/concerts")
+@Path("/concert-service")
 @Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 @Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 public class ConcertResource {
@@ -36,7 +39,7 @@ public class ConcertResource {
 	EntityManager em = PersistenceManager.instance().createEntityManager();
 	
 	@GET
-	@Path("{id}")
+	@Path("concerts/{id}")
 	public Response retrieveConcert(@PathParam("id") Long id, @CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
@@ -54,10 +57,11 @@ public class ConcertResource {
 	}
 	
 	@GET
+	@Path("concerts")
 	public Response retrieveAllConcerts(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class);
+			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concerts c", Concert.class);
 			List<Concert> concerts = concertQuery.getResultList();
 			em.getTransaction().commit();
 			List<ConcertDTO> dtos = new ArrayList<ConcertDTO>();
@@ -72,11 +76,11 @@ public class ConcertResource {
 	}
 	
 	@GET
-	@Path("summaries")
+	@Path("concerts/summaries")
 	public Response retrieveSummaries(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class);
+			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concerts c", Concert.class);
 			List<Concert> concerts = concertQuery.getResultList();
 			em.getTransaction().commit();
 			List<ConcertSummaryDTO> summaries = new ArrayList<ConcertSummaryDTO>();
@@ -90,6 +94,45 @@ public class ConcertResource {
 			em.close();
 		}
 	}
+
+
+	@GET
+	@Path("performers/{id}")
+	public Response retrievePerformer(@PathParam("id") Long id, @CookieParam("clientId") Cookie clientId){
+		try {
+			em.getTransaction().begin();
+			Performer performer = em.find(Performer.class, id);
+			em.getTransaction().commit();
+			if(performer == null) {
+				throw new WebApplicationException(Response.Status.NOT_FOUND);
+			}
+			PerformerDTO dto = PerformerMapper.toDto(performer);
+			return Response.ok(dto).cookie(makeCookie(clientId)).build();
+		}
+		finally {
+			em.close();
+		}
+	}
+
+	@GET
+	@Path("performers")
+	public Response retrieveAllPerformers(@CookieParam("clientId") Cookie clientId) {
+		try {
+			em.getTransaction().begin();
+			TypedQuery<Performer> performerQuery = em.createQuery("select c from Performers c", Performer.class);
+			List<Performer> performers = performerQuery.getResultList();
+			em.getTransaction().commit();
+			List<PerformerDTO> dtos = new ArrayList<PerformerDTO>();
+			for(Performer performer: performers) {
+				dtos.add(PerformerMapper.toDto(performer));
+			}
+			return Response.ok(dtos).cookie(makeCookie(clientId)).build();
+		}
+		finally {
+			em.close();
+		}
+	}
+
 	
 	private NewCookie makeCookie(Cookie clientId) {
         NewCookie newCookie = null;
