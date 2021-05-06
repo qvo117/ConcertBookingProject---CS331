@@ -30,7 +30,7 @@ public class Concert implements Comparable<Concert> {
 	
 	@ElementCollection
 	@CollectionTable(name = "CONCERT_DATES", joinColumns = @JoinColumn(name = "CONCERT_ID"))
-	@Column(name = "DATE")
+	@Column(name = "DATES")
 	private Set<LocalDateTime> dates = new HashSet<LocalDateTime>();
 	
 	@ManyToMany

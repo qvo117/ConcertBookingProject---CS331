@@ -5,6 +5,10 @@ import javax.persistence.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 @Entity
 @Table(name = "USERS")
 public class User {
@@ -14,6 +18,10 @@ public class User {
 	private Long id;
 	private String username;
 	private String password;
+	@ElementCollection
+    @CollectionTable(name="USER_BOOKINGS", joinColumns = @JoinColumn(name = "USER_ID"))
+    @Column(name = "BOOKINGS")
+	private List<Booking> bookings = new ArrayList<Booking>();
 	@Version
 	private Long version;
 	
@@ -51,6 +59,14 @@ public class User {
     
     public void setPassword(String password) {
     	this.password = password;
+    }
+
+    public List<Booking> getBookings() {
+	    return bookings;
+    }
+
+    public void addBooking(Booking booking) {
+	    bookings.add(booking);
     }
     
     @Override

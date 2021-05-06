@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import javax.persistence.Entity;
+
 public class Booking {
 	
 	private long concertId;
@@ -42,8 +44,8 @@ public class Booking {
         return seats;
     }
 
-    public void setSeats(List<Seat> seats) {
-        this.seats = seats;
+    public void addSeat(Seat seat) {
+        this.seats.add(seat);
     }
     
     @Override
