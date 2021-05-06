@@ -28,12 +28,12 @@ public class Concert implements Comparable<Concert> {
 	
 	private String blurb;
 	
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "CONCERT_DATES", joinColumns = @JoinColumn(name = "CONCERT_ID"))
 	@Column(name = "DATES")
 	private Set<LocalDateTime> dates = new HashSet<LocalDateTime>();
 	
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinTable(name = "CONCERT_PERFORMER", 
 	joinColumns = @JoinColumn(name = "CONCERT_ID"),
 	inverseJoinColumns =  @JoinColumn(name = "PERFORMER_ID"))
@@ -91,16 +91,16 @@ public class Concert implements Comparable<Concert> {
         return dates;
     }
     
-    public void setDates(Set<LocalDateTime> dates) {
-        this.dates = dates;
+    public void addDate(LocalDateTime date) {
+        this.dates.add(date);
     }
 
     public Set<Performer> getPerformers() {
         return performers;
     }
     
-    public void setPerformers(Set<Performer> performers) {
-        this.performers = performers;
+    public void addPerformer(Performer performer) {
+        this.performers.add(performer);
     }
 
     @Override
@@ -120,11 +120,6 @@ public class Concert implements Comparable<Concert> {
 
     @Override
     public boolean equals(Object obj) {
-        // Implement value-equality based on a Concert's title alone. ID isn't
-        // included in the equality check because two Concert objects could
-        // represent the same real-world Concert, where one is stored in the
-        // database (and therefore has an ID - a primary key) and the other
-        // doesn't (it exists only in memory).
         if (!(obj instanceof Concert))
             return false;
         if (obj == this)
@@ -138,9 +133,6 @@ public class Concert implements Comparable<Concert> {
 
     @Override
     public int hashCode() {
-        // Hash-code value is derived from the value of the title field. It's
-        // good practice for the hash code to be generated based on a value
-        // that doesn't change.
         return new HashCodeBuilder(17, 31).
                 append(title).hashCode();
     }

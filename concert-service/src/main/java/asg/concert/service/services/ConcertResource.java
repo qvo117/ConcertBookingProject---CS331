@@ -5,12 +5,12 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PostLoad;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 import asg.concert.common.dto.*;
+import asg.concert.common.types.BookingStatus;
 import asg.concert.service.domain.*;
 import asg.concert.service.mapper.PerformerMapper;
 import asg.concert.service.mapper.SeatMapper;
@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asg.concert.service.mapper.ConcertMapper;
-import asg.concert.service.mapper.ConcertSummaryMapper;
 import asg.concert.service.common.Config;
 
 @Path("/concert-service")
@@ -76,8 +75,8 @@ public class ConcertResource {
 			em.getTransaction().commit();
 			List<ConcertSummaryDTO> summaries = new ArrayList<ConcertSummaryDTO>();
 			for(Concert concert : concerts) {
-				ConcertSummary summary = new ConcertSummary(concert.getId(), concert.getTitle(), concert.getImageName());
-				summaries.add(ConcertSummaryMapper.toDto(summary));
+				ConcertSummaryDTO summary = new ConcertSummaryDTO(concert.getId(), concert.getTitle(), concert.getImageName());
+				summaries.add(summary);
 			}
 			GenericEntity<List<ConcertSummaryDTO>> entity = new GenericEntity<List<ConcertSummaryDTO>>(summaries) {};
 			return Response.ok(entity).cookie(makeCookie(clientId)).build();
@@ -131,7 +130,7 @@ public class ConcertResource {
 	public Response login(UserDTO dto, @CookieParam("clientId") Cookie clientId){
 		try {
 			em.getTransaction().begin();
-			TypedQuery<User> userQuery = em.createQuery("select c from Users c", User.class);
+			TypedQuery<User> userQuery = em.createQuery("select c from USERS c", User.class);
 			List<User> users = userQuery.getResultList();
 			em.getTransaction().commit();
 			for(User user: users) {
@@ -156,22 +155,22 @@ public class ConcertResource {
 
 	@GET
 	@Path("seats/{date}")
-	public Response retrieveSeats(@PathParam("date") LocalDateTime date, @QueryParam("status") String status,
+	public Response retrieveSeats(@PathParam("date") String dateString, @QueryParam("status") BookingStatus status,
 								  @CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Seat> seatQuery = em.createQuery("select c from Seats c", Seat.class);
+			TypedQuery<Seat> seatQuery = em.createQuery("select s from Seats where date='" + dateString + "'", Seat.class);
 			List<Seat> seats = seatQuery.getResultList();
 			em.getTransaction().commit();
 			List<SeatDTO> dtos = new ArrayList<SeatDTO>();
 			for(Seat seat : seats) {
-				if(status == "Booked" && seat.getIsBooked()){
+				if(status == BookingStatus.Booked && seat.getIsBooked()){
 					dtos.add(SeatMapper.toDto(seat));
 				}
-				else if(status == "Unbooked" && !seat.getIsBooked()) {
+				else if(status == BookingStatus.Unbooked && !seat.getIsBooked()) {
 					dtos.add(SeatMapper.toDto(seat));
 				}
-				else if(status == "Any") {
+				else if(status == BookingStatus.Any) {
 					dtos.add(SeatMapper.toDto(seat));
 				}
 			}
@@ -188,26 +187,22 @@ public class ConcertResource {
 	public Response makeBooking(BookingRequestDTO dto, @CookieParam("auth") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			List<Seat> seats = new ArrayList<Seat>();
-			Booking newBooking = new Booking(dto.getConcertId(), dto.getDate(), seats);
-			for(String label : dto.getSeatLabels()) {
-				TypedQuery<Seat> seatQuery = em.createQuery("select s from Seats where label='" + label + "'",
-															Seat.class);
-				Seat seat = seatQuery.getSingleResult();
-				if(seat.getIsBooked()) {
-					throw new WebApplicationException(Response.Status.FORBIDDEN);
-				}
-				seat.setIsBooked(true);
-				em.merge(seat);
-				newBooking.addSeat(seat);
-			}
 			User user;
 			try {
 				user = em.find(User.class, Integer.parseInt(clientId.getValue()));
-				user.addBooking(newBooking);
-				em.merge(user);
+				for(String label : dto.getSeatLabels()) {
+					TypedQuery<Seat> seatQuery = em.createQuery("select s from Seats where label='" + label + "'",
+																Seat.class);
+					Seat seat = seatQuery.getSingleResult();
+					if(seat.getIsBooked()) {
+						throw new WebApplicationException(Response.Status.FORBIDDEN);
+					}
+					seat.setIsBooked(true);
+					seat.setBookedUserId(user.getId());
+					em.merge(seat);
+				}
 			}
-			catch(Exception e) {
+			catch(NumberFormatException e) {
 				throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 			}
 			em.getTransaction().commit();
@@ -230,20 +225,35 @@ public class ConcertResource {
 			User user;
 			try {
 				user = em.find(User.class, Integer.parseInt(clientId.getValue()));
-				List<Booking> bookings = user.getBookings();
+				TypedQuery<Seat> seatsQuery = em.createQuery("select s from Seats where bookedUserId='" + user.getId().toString() + "'", 
+															 Seat.class);
+				List<Seat> seats = seatsQuery.getResultList();
 				List<BookingDTO> dtos = new ArrayList<BookingDTO>();
-				for(Booking booking : bookings) {
-					List<Seat> seats = new ArrayList<Seat>();
+				List<Integer> usedIndexes = new ArrayList<Integer>();
+				for(int i = 0; i < seats.size(); i++) {
+					if(usedIndexes.contains(i))
+						continue;
 					List<SeatDTO> seatDtos = new ArrayList<SeatDTO>();
-					for(Seat seat : booking.getSeats()) {
-						seatDtos.add(SeatMapper.toDto(seat));
+					LocalDateTime concertDate = seats.get(i).getDate();
+					TypedQuery<Concert> concertQuery = em.createQuery("select c from Concerts where date='" + concertDate.toString() + "'", 
+															 Concert.class);
+					Concert concert = concertQuery.getSingleResult();
+					for(int j = i + 1; j < seats.size(); j++) {
+						if(usedIndexes.contains(j))
+							continue;
+						if(seats.get(j).getDate() == concertDate) {
+							seatDtos.add(SeatMapper.toDto(seats.get(j)));
+							usedIndexes.add(j);
+						}
 					}
-					dtos.add(new BookingDTO(booking.getConcertId(), booking.getDate(), seatDtos));
+					BookingDTO bookingDto = new BookingDTO(concert.getId(), concertDate, seatDtos);
+					dtos.add(bookingDto);
+					usedIndexes.add(i);
 				}
 				GenericEntity<List<BookingDTO>> entity = new GenericEntity<List<BookingDTO>>(dtos) {};
 				return Response.ok(entity).cookie(makeCookie(clientId)).build();
 			}
-			catch(Exception e) {
+			catch(NumberFormatException e) {
 				throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 			}
 		}
@@ -252,7 +262,6 @@ public class ConcertResource {
 		}
 	}
 
-	
 	private NewCookie makeCookie(Cookie clientId) {
         NewCookie newCookie = null;
 

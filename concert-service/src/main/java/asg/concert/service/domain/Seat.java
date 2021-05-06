@@ -12,7 +12,6 @@ import asg.concert.common.jackson.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 public class Seat {
@@ -24,7 +23,7 @@ public class Seat {
 	private boolean isBooked;
 	private LocalDateTime date;
     private BigDecimal price;
-
+    private Long bookedUserId = null;
 	
 	public Seat() {
 	}
@@ -86,6 +85,14 @@ public class Seat {
     
     public void setPrice(BigDecimal price) {
     	this.price = price;
+    }
+    
+    public Long getBookedUserId() {
+    	return bookedUserId;
+    }
+    
+    public void setBookedUserId(Long userId) {
+    	bookedUserId = userId;
     }
     
     @Override
