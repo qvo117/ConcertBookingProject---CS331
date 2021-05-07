@@ -22,11 +22,13 @@ public class Concert implements Comparable<Concert> {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(nullable = false)
 	private Long id;
+	@Column(nullable = false)
 	private String title;
 	
-	@Column(name = "IMAGE_NAME")
+	@Column(name = "IMAGE_NAME", nullable = false)
 	private String imageName;
 	
+	@Column(nullable = false, length = 1024)
 	private String blurb;
 	
 	@ElementCollection(fetch = FetchType.EAGER)
@@ -34,10 +36,10 @@ public class Concert implements Comparable<Concert> {
 	@Column(name = "DATE")
 	private Set<LocalDateTime> dates = new HashSet<LocalDateTime>();
 	
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
 	@JoinTable(name = "CONCERT_PERFORMER", 
-	joinColumns = @JoinColumn(name = "CONCERT_ID"),
-	inverseJoinColumns =  @JoinColumn(name = "PERFORMER_ID"))
+		joinColumns = @JoinColumn(name = "CONCERT_ID"),
+		inverseJoinColumns =  @JoinColumn(name = "PERFORMER_ID"))
 	private Set<Performer> performers;
 	
 	public Concert(Long id, String title, String imageName, String blurb) {

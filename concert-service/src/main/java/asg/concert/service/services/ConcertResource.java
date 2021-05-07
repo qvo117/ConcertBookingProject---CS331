@@ -238,7 +238,7 @@ public class ConcertResource {
 					TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c where c.date = :concertDate", 
 															 Concert.class).setParameter("concertDate", concertDate);
 					Concert concert = concertQuery.getSingleResult();
-					for(int j = i + 1; j < seats.size(); j++) {
+					for(int j = i; j < seats.size(); j++) {
 						if(usedIndexes.contains(j))
 							continue;
 						if(seats.get(j).getDate() == concertDate) {

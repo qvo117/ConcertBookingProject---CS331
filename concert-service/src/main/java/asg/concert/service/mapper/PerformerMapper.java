@@ -18,7 +18,7 @@ public class PerformerMapper {
 		PerformerDTO dto = new PerformerDTO(
 				performer.getId(),
 				performer.getName(),
-				performer.getImageUri(),
+				performer.getImage_Name(),
 				performer.getGenre(),
 				performer.getBlurb());
 		return dto;

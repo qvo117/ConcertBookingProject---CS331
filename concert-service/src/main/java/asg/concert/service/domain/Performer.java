@@ -1,8 +1,5 @@
 package asg.concert.service.domain;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.persistence.*;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -16,19 +13,23 @@ import asg.concert.common.types.*;
  * of an image file, and a genre.
  */
 @Entity
+@Table(name = "PERFORMERS")
 public class Performer {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(nullable = false)
     private Long id;
+	@Column(nullable = false)
     private String name;
-    
-    @Column(name = "IMAGE_NAME", nullable = false)
-    private String imageUri;
+    @Column(nullable = false)
+    private String image_name;
     
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Genre genre;
+    
+    @Column(nullable = false, length = 1024)
     private String blurb;
 
     public Performer() { }
@@ -36,7 +37,7 @@ public class Performer {
     public Performer(Long id, String name, String imageUri, Genre genre, String blurb) {
         this.id = id;
         this.name = name;
-        this.imageUri = imageUri;
+        this.image_name = imageUri;
         this.genre = genre;
         this.blurb = blurb;
     }
@@ -61,12 +62,12 @@ public class Performer {
         this.name = name;
     }
 
-    public String getImageUri() {
-        return imageUri;
+    public String getImage_Name() {
+        return image_name;
     }
 
-    public void setImageUri(String imageUri) {
-        this.imageUri = imageUri;
+    public void setImage_Name(String imageUri) {
+        this.image_name = imageUri;
     }
 
     public Genre getGenre() {
@@ -93,7 +94,7 @@ public class Performer {
         buffer.append(", name: ");
         buffer.append(name);
         buffer.append(", image: ");
-        buffer.append(imageUri);
+        buffer.append(image_name);
         buffer.append(", genre: ");
         buffer.append(genre.toString());
 
