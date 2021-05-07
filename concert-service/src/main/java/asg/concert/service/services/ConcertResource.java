@@ -50,7 +50,7 @@ public class ConcertResource {
 	public Response retrieveAllConcerts(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concerts c", Concert.class);
+			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class);
 			List<Concert> concerts = concertQuery.getResultList();
 			em.getTransaction().commit();
 			List<ConcertDTO> dtos = new ArrayList<ConcertDTO>();
@@ -70,7 +70,7 @@ public class ConcertResource {
 	public Response retrieveSummaries(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concerts c", Concert.class);
+			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class);
 			List<Concert> concerts = concertQuery.getResultList();
 			em.getTransaction().commit();
 			List<ConcertSummaryDTO> summaries = new ArrayList<ConcertSummaryDTO>();
@@ -110,7 +110,7 @@ public class ConcertResource {
 	public Response retrieveAllPerformers(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Performer> performerQuery = em.createQuery("select c from Performers c", Performer.class);
+			TypedQuery<Performer> performerQuery = em.createQuery("select p from Performer p", Performer.class);
 			List<Performer> performers = performerQuery.getResultList();
 			em.getTransaction().commit();
 			List<PerformerDTO> dtos = new ArrayList<PerformerDTO>();
@@ -130,7 +130,7 @@ public class ConcertResource {
 	public Response login(UserDTO dto, @CookieParam("clientId") Cookie clientId){
 		try {
 			em.getTransaction().begin();
-			TypedQuery<User> userQuery = em.createQuery("select c from USERS c", User.class);
+			TypedQuery<User> userQuery = em.createQuery("select u from User u", User.class);
 			List<User> users = userQuery.getResultList();
 			em.getTransaction().commit();
 			for(User user: users) {
@@ -159,7 +159,7 @@ public class ConcertResource {
 								  @CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Seat> seatQuery = em.createQuery("select s from Seats where date='" + dateString + "'", Seat.class);
+			TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = " + dateString, Seat.class);
 			List<Seat> seats = seatQuery.getResultList();
 			em.getTransaction().commit();
 			List<SeatDTO> dtos = new ArrayList<SeatDTO>();
@@ -191,14 +191,14 @@ public class ConcertResource {
 			try {
 				user = em.find(User.class, Integer.parseInt(clientId.getValue()));
 				for(String label : dto.getSeatLabels()) {
-					TypedQuery<Seat> seatQuery = em.createQuery("select s from Seats where label='" + label + "'",
+					TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.label = " + label,
 																Seat.class);
 					Seat seat = seatQuery.getSingleResult();
 					if(seat.getIsBooked()) {
 						throw new WebApplicationException(Response.Status.FORBIDDEN);
 					}
 					seat.setIsBooked(true);
-					seat.setBookedUserId(user.getId());
+					seat.setBookedUser(user);
 					em.merge(seat);
 				}
 			}
@@ -225,8 +225,8 @@ public class ConcertResource {
 			User user;
 			try {
 				user = em.find(User.class, Integer.parseInt(clientId.getValue()));
-				TypedQuery<Seat> seatsQuery = em.createQuery("select s from Seats where bookedUserId='" + user.getId().toString() + "'", 
-															 Seat.class);
+				TypedQuery<Seat> seatsQuery = em.createQuery("select s from Seat s where s.bookedUser = :userId", 
+															 Seat.class).setParameter("userId", user.getId());
 				List<Seat> seats = seatsQuery.getResultList();
 				List<BookingDTO> dtos = new ArrayList<BookingDTO>();
 				List<Integer> usedIndexes = new ArrayList<Integer>();
@@ -235,8 +235,8 @@ public class ConcertResource {
 						continue;
 					List<SeatDTO> seatDtos = new ArrayList<SeatDTO>();
 					LocalDateTime concertDate = seats.get(i).getDate();
-					TypedQuery<Concert> concertQuery = em.createQuery("select c from Concerts where date='" + concertDate.toString() + "'", 
-															 Concert.class);
+					TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c where c.date = :concertDate", 
+															 Concert.class).setParameter("concertDate", concertDate);
 					Concert concert = concertQuery.getSingleResult();
 					for(int j = i + 1; j < seats.size(); j++) {
 						if(usedIndexes.contains(j))

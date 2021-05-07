@@ -20,6 +20,7 @@ public class Concert implements Comparable<Concert> {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(nullable = false)
 	private Long id;
 	private String title;
 	
@@ -30,14 +31,14 @@ public class Concert implements Comparable<Concert> {
 	
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "CONCERT_DATES", joinColumns = @JoinColumn(name = "CONCERT_ID"))
-	@Column(name = "DATES")
+	@Column(name = "DATE")
 	private Set<LocalDateTime> dates = new HashSet<LocalDateTime>();
 	
-	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "CONCERT_PERFORMER", 
 	joinColumns = @JoinColumn(name = "CONCERT_ID"),
 	inverseJoinColumns =  @JoinColumn(name = "PERFORMER_ID"))
-	private Set<Performer> performers = new HashSet<Performer>();
+	private Set<Performer> performers;
 	
 	public Concert(Long id, String title, String imageName, String blurb) {
         this.id = id;

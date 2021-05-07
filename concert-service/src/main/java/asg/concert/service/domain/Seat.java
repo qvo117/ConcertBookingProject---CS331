@@ -23,7 +23,10 @@ public class Seat {
 	private boolean isBooked;
 	private LocalDateTime date;
     private BigDecimal price;
-    private Long bookedUserId = null;
+    
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "USER_ID", nullable = true)
+    private User bookedUser;
 	
 	public Seat() {
 	}
@@ -87,12 +90,12 @@ public class Seat {
     	this.price = price;
     }
     
-    public Long getBookedUserId() {
-    	return bookedUserId;
+    public User getBookedUser() {
+    	return bookedUser;
     }
     
-    public void setBookedUserId(Long userId) {
-    	bookedUserId = userId;
+    public void setBookedUser(User user) {
+    	bookedUser = user;
     }
     
     @Override

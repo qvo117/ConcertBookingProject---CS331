@@ -16,23 +16,20 @@ import asg.concert.common.types.*;
  * of an image file, and a genre.
  */
 @Entity
-@Table(name = "PERFORMERS")
 public class Performer {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(nullable = false)
     private Long id;
     private String name;
     
-    @Column(name = "IMAGE_NAME")
+    @Column(name = "IMAGE_NAME", nullable = false)
     private String imageUri;
     
     @Enumerated(EnumType.STRING)
     private Genre genre;
     private String blurb;
-    
-    @ManyToMany(mappedBy ="performers")
-	private Set<Concert> concerts = new HashSet<Concert>();
 
     public Performer() { }
 
@@ -86,14 +83,6 @@ public class Performer {
 
     public void setBlurb(String blurb) {
         this.blurb = blurb;
-    }
-    
-    public Set<Concert> getConcerts() {
-        return concerts;
-    }
-    
-    public void setConcerts(Set<Concert> concerts) {
-        this.concerts = concerts;
     }
 
     @Override
