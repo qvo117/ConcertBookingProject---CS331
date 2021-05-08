@@ -36,7 +36,7 @@ public class ConcertResource {
 			Concert concert = em.find(Concert.class, id);
 			em.getTransaction().commit();
 			if(concert == null) {
-				return Response.status(Response.Status.NOT_FOUND).build();
+				throw new WebApplicationException(Response.Status.NOT_FOUND);
 			}
 			ConcertDTO dto = ConcertMapper.toDto(concert);
 			//get a list of Performers
@@ -163,16 +163,16 @@ public class ConcertResource {
 			List<User> users = userQuery.getResultList();
 			em.getTransaction().commit();
 			for(User user: users) {
-				if(user.getUsername() == dto.getUsername() && user.getPassword() == dto.getPassword()){
-					return Response.created(URI
-							.create("/login"))
+				if(user.getUsername().equals(dto.getUsername()) && user.getPassword().equals(dto.getPassword())){
+					NewCookie authCookie = new NewCookie("auth", user.getId().toString());
+					LOGGER.info("Generated cookie: " + authCookie.getValue());
+					return Response
 							.status(Response.Status.OK)
-							.cookie(new NewCookie("auth", user.getId().toString()))
+							.cookie(authCookie)
 							.build();
 				}
 			}
-			return Response.created(URI
-					.create("/login"))
+			return Response
 					.status(Response.Status.UNAUTHORIZED)
 					.cookie(makeCookie(clientId))
 					.build();
