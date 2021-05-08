@@ -31,13 +31,27 @@ public class ConcertResource {
 	@Path("concerts/{id}")
 	public Response retrieveConcert(@PathParam("id") Long id, @CookieParam("clientId") Cookie clientId) {
 		try {
+			LOGGER.info("Retrieving concert with id: " + id);
 			em.getTransaction().begin();
 			Concert concert = em.find(Concert.class, id);
 			em.getTransaction().commit();
 			if(concert == null) {
-				throw new WebApplicationException(Response.Status.NOT_FOUND);
+				return Response.status(Response.Status.NOT_FOUND).build();
 			}
 			ConcertDTO dto = ConcertMapper.toDto(concert);
+			//get a list of Performers
+			List<PerformerDTO> performers = new ArrayList<>();
+			for (Performer performer: concert.getPerformers()) {
+				performers.add(PerformerMapper.toDto(performer));
+			};
+			dto.setPerformers(performers);
+			//get a list of Dates
+			List<LocalDateTime> dates = new ArrayList<>();
+			for (LocalDateTime date: concert.getDates()) {
+				dates.add(date);
+			};
+			dto.setDates(dates);
+			
 			return Response.ok(dto).cookie(makeCookie(clientId)).build();
 		}
 		finally {
@@ -55,8 +69,23 @@ public class ConcertResource {
 			em.getTransaction().commit();
 			List<ConcertDTO> dtos = new ArrayList<ConcertDTO>();
 			for(Concert concert : concerts) {
-				dtos.add(ConcertMapper.toDto(concert));
+				ConcertDTO dto = ConcertMapper.toDto(concert);
+				//get a list of Performers
+				List<PerformerDTO> performers = new ArrayList<>();
+				for (Performer performer: concert.getPerformers()) {
+					performers.add(PerformerMapper.toDto(performer));
+				};
+				dto.setPerformers(performers);
+				//get a list of Dates
+				List<LocalDateTime> dates = new ArrayList<>();
+				for (LocalDateTime date: concert.getDates()) {
+					dates.add(date);
+				};
+				dto.setDates(dates);
+				//add the ConcertDto to the list of ConcertDTOs
+				dtos.add(dto);
 			}
+			
 			GenericEntity<List<ConcertDTO>> entity = new GenericEntity<List<ConcertDTO>>(dtos) {};
 			return Response.ok(entity).cookie(makeCookie(clientId)).build();
 		}

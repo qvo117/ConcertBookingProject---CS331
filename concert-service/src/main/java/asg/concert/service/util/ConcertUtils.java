@@ -65,20 +65,19 @@ public class ConcertUtils {
                 // Ensures we aren't braking the EM with thousands of seat entities.
                 em.clear();
             }
-            
+            //Get all performers 
             TypedQuery<Performer> query1 = em.createQuery("select c from Performer c", Performer.class);
-            List<Performer> concerts1 = query1.getResultList();
-            LOGGER.debug("initConcerts(): There are " + concerts1.size() + " performers");
+            List<Performer> performers = query1.getResultList();
+            LOGGER.debug("initConcerts(): There are " + performers.size() + " performers");
             
-            TypedQuery<Seat> query2 = em.createQuery("select c from Seat c", Seat.class);
-            List<Seat> concerts2 = query2.getResultList();
-            LOGGER.debug("initConcerts(): There are " + concerts2.size() + " seats");
-            
-            TypedQuery<User> query3 = em.createQuery("select c from User c", User.class);
-            List<User> concerts3 = query3.getResultList();
-            LOGGER.debug("initConcerts(): There are " + concerts3.size() + " users");
-
+            //Get all seats created for all concert dates - 120 seats * 13 concert dates
             LOGGER.debug("initConcerts(): Created " + seatCount + " seats!");
+            
+            //Get all users 
+            TypedQuery<User> query3 = em.createQuery("select c from User c", User.class);
+            List<User> users = query3.getResultList();
+            LOGGER.debug("initConcerts(): There are " + users.size() + " users");
+            
         } finally {
             em.close();
         }
