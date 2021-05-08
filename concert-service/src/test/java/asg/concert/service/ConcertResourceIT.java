@@ -1,10 +1,13 @@
 package asg.concert.service;
 
 import org.junit.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asg.concert.common.dto.*;
 import asg.concert.common.jackson.LocalDateTimeDeserializer;
 import asg.concert.common.types.Genre;
+import asg.concert.service.services.ConcertResource;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 public class ConcertResourceIT {
+	private static Logger LOGGER = LoggerFactory.getLogger(ConcertResourceIT.class);
 
     private static final String WEB_SERVICE_URI = "http://localhost:10000/services/concert-service";
     private Client client;
@@ -61,6 +65,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetSingleConcert() {
+    	LOGGER.info("testGetSingleConcert");
 
         ConcertDTO concert = client.target(WEB_SERVICE_URI + "/concerts/1").request().get(ConcertDTO.class);
 
@@ -85,6 +90,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetSingleConcertWithMultiplePerformersAndDates() {
+    	LOGGER.info("testGetSingleConcertWithMultiplePerformersAndDates");
 
         ConcertDTO concert = client.target(WEB_SERVICE_URI + "/concerts/4").request().get(ConcertDTO.class);
 
@@ -107,6 +113,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetNonExistentConcert() {
+    	LOGGER.info("testGetNonExistentConcert");
         Response response = client.target(WEB_SERVICE_URI + "/concerts/100").request().get();
 
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
@@ -117,6 +124,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetAllConcerts() {
+    	LOGGER.info("testGetAllConcerts");
 
         List<ConcertDTO> concerts = client
                 .target(WEB_SERVICE_URI + "/concerts")
@@ -150,6 +158,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetConcertSummaries() {
+    	LOGGER.info("testGetConcertSummaries");
 
         List<ConcertSummaryDTO> concerts = client
                 .target(WEB_SERVICE_URI + "/concerts/summaries")
@@ -178,6 +187,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetSinglePerformer() {
+    	LOGGER.info("testGetSinglePerformer");
 
         PerformerDTO performer = client.target(WEB_SERVICE_URI + "/performers/1").request().get(PerformerDTO.class);
 
@@ -192,6 +202,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetNonExistentPerformer() {
+    	LOGGER.info("testGetNonExistentPerformer");
 
         Response response = client.target(WEB_SERVICE_URI + "/performers/100").request().get();
 
@@ -204,6 +215,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetAllPerformers() {
+    	LOGGER.info("testGetAllPerformers");
 
         List<PerformerDTO> performers = client
                 .target(WEB_SERVICE_URI + "/performers")
@@ -235,6 +247,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testFailedLogin_IncorrectUsername() {
+    	LOGGER.info("testFailedLogin_IncorrectUsername");
         // Log in
         Response loginResponse = login(client, "tesftuser", "pa55word");
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), loginResponse.getStatus());
@@ -247,6 +260,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testFailedLogin_IncorrectPassword() {
+    	LOGGER.info("testFailedLogin_Password");
         // Log in
         Response loginResponse = login(client, "testuser", "pa5word");
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), loginResponse.getStatus());
@@ -259,6 +273,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testSuccessfulLogin() {
+    	LOGGER.info("testSuccessfulLogin");
         // Log in
         Response loginResponse = login(client, "testuser", "pa55word");
         assertEquals(Response.Status.OK.getStatusCode(), loginResponse.getStatus());
@@ -273,6 +288,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testAttemptUnauthorizedBooking() {
+    	LOGGER.info("testAttemptUnauthorizedBooking");
 
         List<String> seatLabels = Arrays.asList("C5", "C6");
 
@@ -301,6 +317,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testMakeSuccessfulBooking() {
+    	LOGGER.info("testMakeSuccessfulBooking");
 
         // Log in
         login(client, "testuser", "pa55word");
@@ -329,6 +346,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetOwnBookingById() {
+    	LOGGER.info("testGetOwnBookingById");
 
         // Log in
         login(client, "testuser", "pa55word");
@@ -357,6 +375,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testAttemptGetOthersBookingById() {
+    	LOGGER.info("testAttemptGetOthersBookingById");
 
         // Log in
         login(client, "testuser", "pa55word");
@@ -388,9 +407,11 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetAllBookingsForUser() {
+    	LOGGER.info("testGetAllBookingsForUser");
 
         // Log in as user 1
         login(client, "testuser", "pa55word");
+        LOGGER.info("Logged in User 1");
 
         // Make bookings for user 1
         Response response = attemptBooking(client, 1,
@@ -444,6 +465,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testAttemptGetAllBookingsWhenNotAuthenticated() {
+    	LOGGER.info("testAttemptGetAllBookingsWhenNotAuthenticated");
         Response response = client.target(WEB_SERVICE_URI + "/bookings").request().get();
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
     }
@@ -468,6 +490,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testAttemptBookingIncorrectConcertId() {
+    	LOGGER.info("testAttemptBookingIncorrectConcertId");
         // Log in
         login(client, "testuser", "pa55word");
 
@@ -484,6 +507,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testAttemptDoubleBooking_SameSeats() {
+    	LOGGER.info("testAttemptDoubleBooking_SameSeats");
         // Log in as user 1
         login(client, "testuser", "pa55word");
 
@@ -531,6 +555,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testAttemptDoubleBooking_OverlappingSeats() {
+    	LOGGER.info("testAttemptDoubleBooking_OverlappingSeats");
         // Log in as user 1
         login(client, "testuser", "pa55word");
 
@@ -587,6 +612,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetBookedSeatsForDate() {
+    	LOGGER.info("testGetBookedSeatsForDate");
         // Log in
         login(client, "testuser", "pa55word");
 
@@ -611,6 +637,7 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetUnbookedSeatsForDate() {
+    	LOGGER.info("testGetUnBookedSeatsForDate");
         // Log in
         login(client, "testuser", "pa55word");
 
@@ -638,13 +665,16 @@ public class ConcertResourceIT {
      */
     @Test
     public void testGetAllSeatsForDate() {
+    	LOGGER.info("testGetAllSeatsForDate");
         // Log in
         login(client, "testuser", "pa55word");
+        LOGGER.info("Logged in user");
 
         // Book some seats
         Response response = attemptBooking(client, 1,
                 LocalDateTime.of(2020, 2, 15, 20, 0, 0),
                 "C5", "C6");
+        LOGGER.info("Booked Seats");
 
         // Get hopefully all seats
         List<SeatDTO> seats = client.target(WEB_SERVICE_URI + "/seats/2020-02-15T20:00:00?status=Any")

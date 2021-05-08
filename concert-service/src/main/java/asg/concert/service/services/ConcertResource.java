@@ -188,7 +188,7 @@ public class ConcertResource {
 								  @CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = " + dateString, Seat.class);
+			TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = '" + dateString + "'", Seat.class);
 			List<Seat> seats = seatQuery.getResultList();
 			em.getTransaction().commit();
 			List<SeatDTO> dtos = new ArrayList<SeatDTO>();
@@ -218,10 +218,10 @@ public class ConcertResource {
 			em.getTransaction().begin();
 			User user;
 			try {
-				user = em.find(User.class, Integer.parseInt(clientId.getValue()));
+				user = em.find(User.class, Long.parseLong(clientId.getValue()));
 				for(String label : dto.getSeatLabels()) {
-					TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.label = " + label,
-																Seat.class);
+					TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = '" + dto.getDate().toString()
+																+ "' and s.label = '" + label + "'", Seat.class);
 					Seat seat = seatQuery.getSingleResult();
 					if(seat.getIsBooked()) {
 						throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -253,7 +253,7 @@ public class ConcertResource {
 			em.getTransaction().begin();
 			User user;
 			try {
-				user = em.find(User.class, Integer.parseInt(clientId.getValue()));
+				user = em.find(User.class, Long.parseLong(clientId.getValue()));
 				TypedQuery<Seat> seatsQuery = em.createQuery("select s from Seat s where s.bookedUser = :userId", 
 															 Seat.class).setParameter("userId", user.getId());
 				List<Seat> seats = seatsQuery.getResultList();
