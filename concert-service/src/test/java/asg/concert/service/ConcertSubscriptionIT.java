@@ -1,6 +1,8 @@
 package asg.concert.service;
 
 import org.junit.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asg.concert.common.dto.*;
 import asg.concert.common.jackson.LocalDateTimeDeserializer;
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.*;
 
 public class ConcertSubscriptionIT {
-
+	private static Logger LOGGER = LoggerFactory.getLogger(ConcertResourceIT.class);
     private static final String WEB_SERVICE_URI = "http://localhost:10000/services/concert-service";
     private Client client;
 
@@ -95,7 +97,6 @@ public class ConcertSubscriptionIT {
     private void testBadSubscription(long concertId, LocalDateTime date) throws InterruptedException, ExecutionException, TimeoutException {
         // Log in
         login(client, "testuser", "pa55word");
-
         // Attempt to subscribe
         ConcertInfoSubscriptionDTO subInfo = new ConcertInfoSubscriptionDTO(concertId, date, 50);
         Future<Response> future = client.target(WEB_SERVICE_URI + "/subscribe/concertInfo")
@@ -171,7 +172,6 @@ public class ConcertSubscriptionIT {
         ConcertInfoSubscriptionDTO subInfo = new ConcertInfoSubscriptionDTO(1, date, 50);
         Future<ConcertInfoNotificationDTO> future = client.target(WEB_SERVICE_URI + "/subscribe/concertInfo")
                 .request().async().post(Entity.json(subInfo), ConcertInfoNotificationDTO.class);
-
         // User 2 books out a whole theatre - but for a different concert.
         LocalDateTime user2Date = LocalDateTime.of(2019, 9, 12, 20, 0, 0);
         Client user2Client = ClientBuilder.newClient();

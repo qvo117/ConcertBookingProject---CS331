@@ -40,8 +40,9 @@ public class Concert implements Comparable<Concert> {
 	@Column(name = "DATE")
 	private Set<LocalDateTime> dates = new HashSet<LocalDateTime>();
 	
-	@ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})//performer is only fetched when relationship is used.
-    // Is only persisting when concert is persistent
+
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})//performer is only fetched when relationship is used.
+  // Is only persisting when concert is persistent
 	@JoinTable(name = "CONCERT_PERFORMER", 
 		joinColumns = @JoinColumn(name = "CONCERT_ID"),
 		inverseJoinColumns =  @JoinColumn(name = "PERFORMER_ID"))

@@ -3,9 +3,12 @@ package asg.concert.service.services;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import javax.persistence.Access;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.SynchronizationType;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.*;
@@ -32,13 +35,13 @@ public class ConcertResource {
 	private static Logger LOGGER = LoggerFactory.getLogger(ConcertResource.class);
 	EntityManager em = PersistenceManager.instance().createEntityManager();
 	private static final List<AsyncResponse> subs = new ArrayList<AsyncResponse>();
+  private static List<ConcertInfoSubscriptionDTO> subDtos = new ArrayList<ConcertInfoSubscriptionDTO>();
 
 	//Gets the concert with the given id
 	@GET
 	@Path("concerts/{id}")
 	public Response retrieveConcert(@PathParam("id") Long id, @CookieParam("clientId") Cookie clientId) {
 		try {
-			LOGGER.info("Retrieving concert with id: " + id);
 			em.getTransaction().begin();
 			Concert concert = em.find(Concert.class, id);
 			em.getTransaction().commit();
@@ -177,14 +180,13 @@ public class ConcertResource {
 	public Response login(UserDTO dto, @CookieParam("clientId") Cookie clientId){
 		try {
 			em.getTransaction().begin();
-			TypedQuery<User> userQuery = em.createQuery("select u from User u", User.class); //queries users
+			TypedQuery<User> userQuery = em.createQuery("select u from User u", User.class).setLockMode(LockModeType.OPTIMISTIC); //queries users
 			List<User> users = userQuery.getResultList();
 			em.getTransaction().commit();
 			//check to see if all auth requirements match, i.e the password and username.
 			for(User user: users) {
 				if(user.getUsername().equals(dto.getUsername()) && user.getPassword().equals(dto.getPassword())){
 					NewCookie authCookie = new NewCookie("auth", user.getId().toString());	//if the username and password match create new auth cookie
-					LOGGER.info("Generated auth cookie: " + authCookie.getValue());
 					return Response
 							.status(Response.Status.OK)
 							.cookie(authCookie)
@@ -208,7 +210,7 @@ public class ConcertResource {
 								  @CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = '" + dateString + "'", Seat.class);
+			TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = '" + dateString + "'", Seat.class).setLockMode(LockModeType.OPTIMISTIC);
 			List<Seat> seats = seatQuery.getResultList();
 			em.getTransaction().commit();
 			List<SeatDTO> dtos = new ArrayList<SeatDTO>();
@@ -254,7 +256,7 @@ public class ConcertResource {
 				List<Seat> bookingSeats = new ArrayList<Seat>();
 				for(String label : dto.getSeatLabels()) {
 					TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = '" + dto.getDate().toString()
-																+ "' and s.label = '" + label + "'", Seat.class);
+																+ "' and s.label = '" + label + "'", Seat.class).setLockMode(LockModeType.OPTIMISTIC);
 					Seat seat = seatQuery.getSingleResult();
 					if(seat.getIsBooked()) {
 						return Response
@@ -291,7 +293,6 @@ public class ConcertResource {
 	@GET
 	@Path("bookings")
 	public Response retrieveAllBookings(@CookieParam("auth") Cookie clientId) {
-		LOGGER.info("retrieveBookings1 called");
 		if(clientId == null)
 			return Response
 					.status(Response.Status.UNAUTHORIZED)
@@ -326,7 +327,6 @@ public class ConcertResource {
 	@GET
 	@Path("bookings/{id}")
 	public Response retrieveBooking(@PathParam("id") Long id, @CookieParam("auth") Cookie clientId) {
-		LOGGER.info("retrieveBookings2 called");
 		if(clientId == null)
 			return Response
 					.status(Response.Status.UNAUTHORIZED)
@@ -358,22 +358,22 @@ public class ConcertResource {
 	}
 
 	@GET
+	@Path("subscribe/concertInfo")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response makeSubscription(@CookieParam("auth") Cookie clientId){
-		LOGGER.info("makesubcalled called");
 		if(clientId == null)
 			return Response
 					.status(Response.Status.UNAUTHORIZED)
 					.cookie(makeCookie(clientId))
 					.build();
-		User user;
 		try {
 			em.getTransaction().begin();
-			user = em.find(User.class, Long.parseLong(clientId.getValue()));
+			User user = em.find(User.class, Long.parseLong(clientId.getValue()));
 			synchronized (subs){
-				for (int i = 0; i < user.getSubscriptions().size(); i++) {
-					ConcertInfoSubscriptionDTO subdto = user.getSubscriptions().get(i);
+				for (int i = 0; i < subs.size(); i++) {
+					ConcertInfoSubscriptionDTO subdto = subDtos.get(i);
 					List<Seat> seats = em.createQuery("select s from seats s where s.date = '" +
-							subdto.getDate().toString() + "' and s.isBooked = :isBooked", Seat.class).setParameter("isBooked", true).getResultList();
+							subdto.getDate().toString() + "' and s.isBooked = :isBooked", Seat.class).setLockMode(LockModeType.OPTIMISTIC).setParameter("isBooked", true).getResultList();
 					if(seats.isEmpty() == true || em.find(Concert.class, subdto.getConcertId()) == null)
 						return Response
 								.status(Response.Status.BAD_REQUEST)
@@ -384,6 +384,7 @@ public class ConcertResource {
 						subs.get(i).resume(dto);
 					}
 				}
+				subs.clear();
 			}
 			em.getTransaction().commit();
 			return Response.ok().cookie(makeCookie(clientId)).build();
@@ -401,8 +402,8 @@ public class ConcertResource {
 
 
 	@POST
-	@Path("/subscribe/concertInfo")
-	public void subscriptionNotify(@Suspended AsyncResponse sub,@CookieParam("auth") Cookie clientId, ConcertInfoSubscriptionDTO dto){
+	@Path("subscribe/concertInfo")
+	public void subscriptionNotify(final @Suspended AsyncResponse sub, @CookieParam("auth") Cookie clientId, ConcertInfoSubscriptionDTO dto) {
 		if(clientId == null)
 			throw new WebApplicationException(Response
 					.status(Response.Status.UNAUTHORIZED)
@@ -412,7 +413,7 @@ public class ConcertResource {
 		try {
 			em.getTransaction().begin();
 			user = em.find(User.class, Long.parseLong(clientId.getValue()));
-			user.addSubscriptions(dto);
+			subDtos.add(dto);
 			subs.add(sub);
 			em.merge(user);
 			em.getTransaction().commit();
@@ -433,7 +434,6 @@ public class ConcertResource {
 
         if (clientId == null) {
             newCookie = new NewCookie(Config.CLIENT_COOKIE, UUID.randomUUID().toString());
-            LOGGER.info("Generated cookie: " + newCookie.getValue());
         }
 
         return newCookie;

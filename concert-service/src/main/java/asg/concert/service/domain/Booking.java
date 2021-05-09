@@ -26,8 +26,8 @@ public class Booking {
 	private long concertId;
 	private LocalDateTime date;
 	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL) // Eager fetching to load associate entities
-    @JoinColumn(name = "USER_ID", nullable = true)
+	@ManyToOne(cascade = CascadeType.ALL) // Eager fetching to load associate entities
+  @JoinColumn(name = "USER_ID", nullable = true)
 	private User user;
 	
 	@OneToMany //One booking for many seats
