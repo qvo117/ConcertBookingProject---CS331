@@ -12,6 +12,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import asg.concert.common.jackson.LocalDateTimeDeserializer;
 import asg.concert.common.jackson.LocalDateTimeSerializer;
 
+/*
+Booking Domain Model
+Each booking is linked to the user that made the booking and the list of seats booked.
+ */
 @Entity
 @Table(name = "BOOKINGS")
 public class Booking {
@@ -22,11 +26,11 @@ public class Booking {
 	private long concertId;
 	private LocalDateTime date;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "USER_ID", nullable = true)
+	@ManyToOne(cascade = CascadeType.ALL) // Eager fetching to load associate entities
+  @JoinColumn(name = "USER_ID", nullable = true)
 	private User user;
 	
-	@OneToMany
+	@OneToMany //One booking for many seats
 	private List<Seat> seats = new ArrayList<Seat>();
 
 	public Booking() {

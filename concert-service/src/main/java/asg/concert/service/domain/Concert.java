@@ -14,35 +14,41 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import asg.concert.common.jackson.*;
 
+/*
+Concert Domain Model
+Domain model for the concert entity used to populate the columns.
+ */
 @Entity
 @Table(name = "CONCERTS")
 public class Concert implements Comparable<Concert> {
-	
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY) //Assigned primary keys
 	@Column(nullable = false)
-	private Long id;
+	private Long id;                                    // id, title, imageName, blurb all must be filled in
 	@Column(nullable = false)
 	private String title;
-	
+
 	@Column(name = "IMAGE_NAME", nullable = false)
 	private String imageName;
 	
 	@Column(nullable = false, length = 1024)
 	private String blurb;
 	
-	@ElementCollection(fetch = FetchType.EAGER)
-	@CollectionTable(name = "CONCERT_DATES", joinColumns = @JoinColumn(name = "CONCERT_ID"))
+	@ElementCollection(fetch = FetchType.EAGER)         //Load all the date in one query instead of loading one at a time
+	@CollectionTable(name = "CONCERT_DATES", joinColumns = @JoinColumn(name = "CONCERT_ID"))    //Concert date table made joining concertid and dates
 	@Column(name = "DATE")
 	private Set<LocalDateTime> dates = new HashSet<LocalDateTime>();
 	
-	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})//performer is only fetched when relationship is used.
+  // Is only persisting when concert is persistent
 	@JoinTable(name = "CONCERT_PERFORMER", 
 		joinColumns = @JoinColumn(name = "CONCERT_ID"),
 		inverseJoinColumns =  @JoinColumn(name = "PERFORMER_ID"))
 	private Set<Performer> performers;
-	
-	public Concert(Long id, String title, String imageName, String blurb) {
+
+	public Concert(Long id, String title, String imageName, String blurb) {     //init concert
         this.id = id;
         this.title = title;
         this.imageName = imageName;
@@ -55,7 +61,7 @@ public class Concert implements Comparable<Concert> {
 
     public Concert() {
     }
-
+    //all the concert methods
     public Long getId() {
         return id;
     }

@@ -34,10 +34,10 @@ import asg.concert.service.common.Config;
 public class ConcertResource {
 	private static Logger LOGGER = LoggerFactory.getLogger(ConcertResource.class);
 	EntityManager em = PersistenceManager.instance().createEntityManager();
-	private static List<AsyncResponse> subs = new ArrayList<AsyncResponse>();
-	private static List<ConcertInfoSubscriptionDTO> subDtos = new ArrayList<ConcertInfoSubscriptionDTO>();
-	
-	
+	private static final List<AsyncResponse> subs = new ArrayList<AsyncResponse>();
+  private static List<ConcertInfoSubscriptionDTO> subDtos = new ArrayList<ConcertInfoSubscriptionDTO>();
+
+	//Gets the concert with the given id
 	@GET
 	@Path("concerts/{id}")
 	public Response retrieveConcert(@PathParam("id") Long id, @CookieParam("clientId") Cookie clientId) {
@@ -45,6 +45,7 @@ public class ConcertResource {
 			em.getTransaction().begin();
 			Concert concert = em.find(Concert.class, id);
 			em.getTransaction().commit();
+			//checks if concert with the given id is non existent
 			if(concert == null) {
 				return Response
 						.status(Response.Status.NOT_FOUND)
@@ -71,22 +72,23 @@ public class ConcertResource {
 			em.close();
 		}
 	}
-	
+
+	//Retrieve all the concerts
 	@GET
 	@Path("concerts")
 	public Response retrieveAllConcerts(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class);
-			List<Concert> concerts = concertQuery.getResultList();
+			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class);	//Queries all the concerts
+			List<Concert> concerts = concertQuery.getResultList(); //add it to list
 			em.getTransaction().commit();
 			List<ConcertDTO> dtos = new ArrayList<ConcertDTO>();
 			for(Concert concert : concerts) {
-				ConcertDTO dto = ConcertMapper.toDto(concert);
+				ConcertDTO dto = ConcertMapper.toDto(concert);	//transfers all the concert list to concertDTO list
 				//get a list of Performers
 				List<PerformerDTO> performers = new ArrayList<>();
 				for (Performer performer: concert.getPerformers()) {
-					performers.add(PerformerMapper.toDto(performer));
+					performers.add(PerformerMapper.toDto(performer));	//get all the performer in concert
 				};
 				dto.setPerformers(performers);
 				//get a list of Dates
@@ -106,87 +108,92 @@ public class ConcertResource {
 			em.close();
 		}
 	}
-	
+
+	//Take summaries of all the concerts
 	@GET
 	@Path("concerts/summaries")
 	public Response retrieveSummaries(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class);
-			List<Concert> concerts = concertQuery.getResultList();
+			TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c", Concert.class); //gets concert from query
+			List<Concert> concerts = concertQuery.getResultList();	//Creates concert list out of query items
 			em.getTransaction().commit();
 			List<ConcertSummaryDTO> summaries = new ArrayList<ConcertSummaryDTO>();
+			//adds summaries to summaryDTO
 			for(Concert concert : concerts) {
 				ConcertSummaryDTO summary = new ConcertSummaryDTO(concert.getId(), concert.getTitle(), concert.getImageName());
 				summaries.add(summary);
 			}
 			GenericEntity<List<ConcertSummaryDTO>> entity = new GenericEntity<List<ConcertSummaryDTO>>(summaries) {};
-			return Response.ok(entity).cookie(makeCookie(clientId)).build();
+			return Response.ok(entity).cookie(makeCookie(clientId)).build(); //returns summaryDTO with all the summaries
 		}
 		finally {
 			em.close();
 		}
 	}
 
-
+	//Retrieves a performer with a specific id
 	@GET
 	@Path("performers/{id}")
 	public Response retrievePerformer(@PathParam("id") Long id, @CookieParam("clientId") Cookie clientId){
 		try {
 			em.getTransaction().begin();
-			Performer performer = em.find(Performer.class, id);
+			Performer performer = em.find(Performer.class, id); //gets performer using the id
 			em.getTransaction().commit();
-			if(performer == null) {
+			if(performer == null) {								//checks if performer is not null
 				return Response
 						.status(Response.Status.NOT_FOUND)
 						.cookie(makeCookie(clientId))
 						.build();
 			}
-			PerformerDTO dto = PerformerMapper.toDto(performer);
-			return Response.ok(dto).cookie(makeCookie(clientId)).build();
+			PerformerDTO dto = PerformerMapper.toDto(performer);		//maps it to a DTO
+			return Response.ok(dto).cookie(makeCookie(clientId)).build();	//returns performer
 		}
 		finally {
 			em.close();
 		}
 	}
 
+	//retrieves all performers
 	@GET
 	@Path("performers")
 	public Response retrieveAllPerformers(@CookieParam("clientId") Cookie clientId) {
 		try {
 			em.getTransaction().begin();
-			TypedQuery<Performer> performerQuery = em.createQuery("select p from Performer p", Performer.class);
+			TypedQuery<Performer> performerQuery = em.createQuery("select p from Performer p", Performer.class); //Query for all performers
 			List<Performer> performers = performerQuery.getResultList();
 			em.getTransaction().commit();
 			List<PerformerDTO> dtos = new ArrayList<PerformerDTO>();
 			for(Performer performer: performers) {
-				dtos.add(PerformerMapper.toDto(performer));
+				dtos.add(PerformerMapper.toDto(performer)); //maps performers to performer dto
 			}
 			GenericEntity<List<PerformerDTO>> entity = new GenericEntity<List<PerformerDTO>>(dtos) {};
-			return Response.ok(entity).cookie(makeCookie(clientId)).build();
+			return Response.ok(entity).cookie(makeCookie(clientId)).build(); //send dto back a generic entity
 		}
 		finally {
 			em.close();
 		}
 	}
-
+	//logs user in
 	@POST
 	@Path("login")
 	public Response login(UserDTO dto, @CookieParam("clientId") Cookie clientId){
 		try {
 			em.getTransaction().begin();
-			TypedQuery<User> userQuery = em.createQuery("select u from User u", User.class).setLockMode(LockModeType.OPTIMISTIC);
+			TypedQuery<User> userQuery = em.createQuery("select u from User u", User.class).setLockMode(LockModeType.OPTIMISTIC); //queries users
 			List<User> users = userQuery.getResultList();
 			em.getTransaction().commit();
+			//check to see if all auth requirements match, i.e the password and username.
 			for(User user: users) {
 				if(user.getUsername().equals(dto.getUsername()) && user.getPassword().equals(dto.getPassword())){
-					NewCookie authCookie = new NewCookie("auth", user.getId().toString());
+					NewCookie authCookie = new NewCookie("auth", user.getId().toString());	//if the username and password match create new auth cookie
 					return Response
 							.status(Response.Status.OK)
 							.cookie(authCookie)
 							.build();
 				}
 			}
+			//response when password or user is wrong
 			return Response
 					.status(Response.Status.UNAUTHORIZED)
 					.cookie(makeCookie(clientId))

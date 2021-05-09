@@ -12,6 +12,10 @@ import asg.concert.common.types.*;
  * Performer object has an ID (a database primary key value), a name, the name
  * of an image file, and a genre.
  */
+/*
+Performer domain model
+The performer is tied to the concert entity.
+ */
 @Entity
 @Table(name = "PERFORMERS")
 public class Performer {
