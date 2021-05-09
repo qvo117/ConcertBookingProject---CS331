@@ -17,6 +17,7 @@ import asg.concert.service.mapper.SeatMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import asg.concert.service.mapper.BookingMapper;
 import asg.concert.service.mapper.ConcertMapper;
 import asg.concert.service.common.Config;
 
@@ -36,7 +37,10 @@ public class ConcertResource {
 			Concert concert = em.find(Concert.class, id);
 			em.getTransaction().commit();
 			if(concert == null) {
-				throw new WebApplicationException(Response.Status.NOT_FOUND);
+				return Response
+						.status(Response.Status.NOT_FOUND)
+						.cookie(makeCookie(clientId))
+						.build();
 			}
 			ConcertDTO dto = ConcertMapper.toDto(concert);
 			//get a list of Performers
@@ -124,7 +128,10 @@ public class ConcertResource {
 			Performer performer = em.find(Performer.class, id);
 			em.getTransaction().commit();
 			if(performer == null) {
-				throw new WebApplicationException(Response.Status.NOT_FOUND);
+				return Response
+						.status(Response.Status.NOT_FOUND)
+						.cookie(makeCookie(clientId))
+						.build();
 			}
 			PerformerDTO dto = PerformerMapper.toDto(performer);
 			return Response.ok(dto).cookie(makeCookie(clientId)).build();
@@ -165,7 +172,7 @@ public class ConcertResource {
 			for(User user: users) {
 				if(user.getUsername().equals(dto.getUsername()) && user.getPassword().equals(dto.getPassword())){
 					NewCookie authCookie = new NewCookie("auth", user.getId().toString());
-					LOGGER.info("Generated cookie: " + authCookie.getValue());
+					LOGGER.info("Generated auth cookie: " + authCookie.getValue());
 					return Response
 							.status(Response.Status.OK)
 							.cookie(authCookie)
@@ -214,25 +221,46 @@ public class ConcertResource {
 	@POST
 	@Path("bookings")
 	public Response makeBooking(BookingRequestDTO dto, @CookieParam("auth") Cookie clientId) {
+		if(clientId == null)
+			return Response
+					.status(Response.Status.UNAUTHORIZED)
+					.cookie(makeCookie(clientId))
+					.build();
 		try {
 			em.getTransaction().begin();
+			Concert concert = em.find(Concert.class, dto.getConcertId());
+			if(concert == null || !concert.getDates().contains(dto.getDate()))
+				return Response
+						.status(Response.Status.BAD_REQUEST)
+						.cookie(makeCookie(clientId))
+						.build();
 			User user;
 			try {
 				user = em.find(User.class, Long.parseLong(clientId.getValue()));
+				List<Seat> bookingSeats = new ArrayList<Seat>();
 				for(String label : dto.getSeatLabels()) {
 					TypedQuery<Seat> seatQuery = em.createQuery("select s from Seat s where s.date = '" + dto.getDate().toString()
 																+ "' and s.label = '" + label + "'", Seat.class);
 					Seat seat = seatQuery.getSingleResult();
 					if(seat.getIsBooked()) {
-						throw new WebApplicationException(Response.Status.FORBIDDEN);
+						return Response
+								.status(Response.Status.FORBIDDEN)
+								.cookie(makeCookie(clientId))
+								.build();
 					}
 					seat.setIsBooked(true);
-					seat.setBookedUser(user);
+					bookingSeats.add(seat);
 					em.merge(seat);
 				}
+				Booking booking = new Booking(dto.getConcertId(), dto.getDate(), bookingSeats);
+				booking.setUser(user);
+				em.persist(booking);
 			}
 			catch(NumberFormatException e) {
-				throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+				return Response
+						.status(Response.Status.UNAUTHORIZED)
+						.cookie(makeCookie(clientId))
+						.build();
 			}
 			em.getTransaction().commit();
 			return Response.created(URI
@@ -249,41 +277,31 @@ public class ConcertResource {
 	@GET
 	@Path("bookings")
 	public Response retrieveBookings(@CookieParam("auth") Cookie clientId) {
+		LOGGER.info("retrieveBookings called");
+		if(clientId == null)
+			return Response
+					.status(Response.Status.UNAUTHORIZED)
+					.cookie(makeCookie(clientId))
+					.build();
 		try {
 			em.getTransaction().begin();
 			User user;
 			try {
 				user = em.find(User.class, Long.parseLong(clientId.getValue()));
-				TypedQuery<Seat> seatsQuery = em.createQuery("select s from Seat s where s.bookedUser = :userId", 
-															 Seat.class).setParameter("userId", user.getId());
-				List<Seat> seats = seatsQuery.getResultList();
+				TypedQuery<Booking> bookingsQuery = em.createQuery("select b from Booking b where b.user = :user", 
+															 Booking.class).setParameter("user", user);
+				List<Booking> bookings = bookingsQuery.getResultList();
 				List<BookingDTO> dtos = new ArrayList<BookingDTO>();
-				List<Integer> usedIndexes = new ArrayList<Integer>();
-				for(int i = 0; i < seats.size(); i++) {
-					if(usedIndexes.contains(i))
-						continue;
-					List<SeatDTO> seatDtos = new ArrayList<SeatDTO>();
-					LocalDateTime concertDate = seats.get(i).getDate();
-					TypedQuery<Concert> concertQuery = em.createQuery("select c from Concert c where c.date = :concertDate", 
-															 Concert.class).setParameter("concertDate", concertDate);
-					Concert concert = concertQuery.getSingleResult();
-					for(int j = i; j < seats.size(); j++) {
-						if(usedIndexes.contains(j))
-							continue;
-						if(seats.get(j).getDate() == concertDate) {
-							seatDtos.add(SeatMapper.toDto(seats.get(j)));
-							usedIndexes.add(j);
-						}
-					}
-					BookingDTO bookingDto = new BookingDTO(concert.getId(), concertDate, seatDtos);
-					dtos.add(bookingDto);
-					usedIndexes.add(i);
-				}
+				for(Booking booking : bookings)
+					dtos.add(BookingMapper.toDto(booking));
 				GenericEntity<List<BookingDTO>> entity = new GenericEntity<List<BookingDTO>>(dtos) {};
 				return Response.ok(entity).cookie(makeCookie(clientId)).build();
 			}
 			catch(NumberFormatException e) {
-				throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+				return Response
+						.status(Response.Status.UNAUTHORIZED)
+						.cookie(makeCookie(clientId))
+						.build();
 			}
 		}
 		finally {
@@ -302,3 +320,4 @@ public class ConcertResource {
         return newCookie;
     }
 }
+

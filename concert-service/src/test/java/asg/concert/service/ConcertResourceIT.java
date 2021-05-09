@@ -1,6 +1,7 @@
 package asg.concert.service;
 
 import org.junit.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -298,6 +299,7 @@ public class ConcertResourceIT {
         // Try to book
         Response response = client.target(WEB_SERVICE_URI + "/bookings")
                 .request().post(Entity.json(bReq));
+        
 
         // Make sure it didn't work
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());

@@ -23,10 +23,6 @@ public class Seat {
 	private boolean isBooked;
 	private LocalDateTime date;
     private BigDecimal price;
-    
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "USER_ID", nullable = true)
-    private User bookedUser;
 	
 	public Seat() {
 	}
@@ -88,14 +84,6 @@ public class Seat {
     
     public void setPrice(BigDecimal price) {
     	this.price = price;
-    }
-    
-    public User getBookedUser() {
-    	return bookedUser;
-    }
-    
-    public void setBookedUser(User user) {
-    	bookedUser = user;
     }
     
     @Override
