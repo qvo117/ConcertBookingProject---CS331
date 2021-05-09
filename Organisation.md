@@ -1,3 +1,5 @@
+Quynh Vo (qvo117), Michael McKenzie (BlackbirdAB), Min Soo Sohn (Dannycom)
+
 Point #1:
 The way we organised the team was that we had regular meetings to discuss the project.
 Our team discussed the domain model together while Michael implemented it. 
