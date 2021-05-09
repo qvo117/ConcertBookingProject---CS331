@@ -13,6 +13,11 @@ import asg.concert.common.jackson.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/*
+Seat domain model
+seat is connected to booking, multiple seats per booking.
+up to 120 seats in a concert
+ */
 @Entity
 public class Seat {
 
