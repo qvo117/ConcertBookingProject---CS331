@@ -1,15 +1,20 @@
 package asg.concert.service.util;
 
 import org.slf4j.Logger;
+
 import org.slf4j.LoggerFactory;
 
 import asg.concert.service.domain.Concert;
+import asg.concert.service.domain.Performer;
 import asg.concert.service.domain.Seat;
+import asg.concert.service.domain.User;
 import asg.concert.service.services.ConcertApplication;
 import asg.concert.service.services.PersistenceManager;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.validation.constraints.Size;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +29,6 @@ public class ConcertUtils {
      * all concerts and dates.
      */
     public static void initConcerts() {
-        LOGGER.debug("initConcerts(): Creating the Application");
 
         EntityManager em = PersistenceManager.instance().createEntityManager();
         try {
@@ -42,8 +46,6 @@ public class ConcertUtils {
             }
             em.getTransaction().commit();
 
-            LOGGER.debug("initConcerts(): There are " + allDates.size() + " concert dates");
-
             // For each concert date, create the seats for that date and persist them.
             int seatCount = 0;
             for (LocalDateTime date : allDates) {
@@ -59,8 +61,10 @@ public class ConcertUtils {
                 // Ensures we aren't braking the EM with thousands of seat entities.
                 em.clear();
             }
-
+            
+            //Get all seats created for all concert dates - 120 seats * 13 concert dates
             LOGGER.debug("initConcerts(): Created " + seatCount + " seats!");
+            
         } finally {
             em.close();
         }

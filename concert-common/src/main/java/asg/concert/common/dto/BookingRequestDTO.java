@@ -4,6 +4,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import asg.concert.common.jackson.LocalDateTimeDeserializer;
+import asg.concert.common.jackson.LocalDateTimeSerializer;
+
 /**
  * Represents a request to make a booking.
  * concertId   the id of the concert to be booked
@@ -37,6 +43,8 @@ public class BookingRequestDTO {
         this.concertId = concertId;
     }
 
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     public LocalDateTime getDate() {
         return date;
     }

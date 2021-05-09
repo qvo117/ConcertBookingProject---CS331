@@ -2,9 +2,13 @@ package asg.concert.service;
 
 import org.junit.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import asg.concert.common.dto.*;
 import asg.concert.common.jackson.LocalDateTimeDeserializer;
 import asg.concert.common.types.Genre;
+import asg.concert.service.services.ConcertResource;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -24,8 +28,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
-
 public class ConcertResourceIT {
+	private static Logger LOGGER = LoggerFactory.getLogger(ConcertResourceIT.class);
 
     private static final String WEB_SERVICE_URI = "http://localhost:10000/services/concert-service";
     private Client client;
@@ -283,6 +287,7 @@ public class ConcertResourceIT {
         // Try to book
         Response response = client.target(WEB_SERVICE_URI + "/bookings")
                 .request().post(Entity.json(bReq));
+        
 
         // Make sure it didn't work
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
@@ -361,7 +366,7 @@ public class ConcertResourceIT {
 
         // Log in
         login(client, "testuser", "pa55word");
-
+        
         // Make booking
         Response bookingResponse = attemptBooking(client, 1,
                 LocalDateTime.of(2020, 2, 15, 20, 0, 0),
@@ -374,7 +379,7 @@ public class ConcertResourceIT {
 
         // Log in as someone else
         login(client, "testuser2", "pa55word");
-
+        
         // Attempt to get the booking - should fail
         response = client.target(bookingResponse.getLocation())
                 .request().get();
