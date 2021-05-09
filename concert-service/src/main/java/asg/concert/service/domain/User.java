@@ -22,8 +22,6 @@ public class User {
 
 	@Version
 	private Long version;
-
-    private ArrayList<ConcertInfoSubscriptionDTO> subs = new ArrayList<ConcertInfoSubscriptionDTO>();
 	
 	public User() {}
 	
@@ -59,14 +57,6 @@ public class User {
     
     public void setPassword(String password) {
     	this.password = password;
-    }
-
-    public ArrayList<ConcertInfoSubscriptionDTO> getSubscriptions() {
-        return subs;
-    }
-
-    public void addSubscriptions(ConcertInfoSubscriptionDTO sub) {
-        this.subs.add(sub);
     }
 
     @Override

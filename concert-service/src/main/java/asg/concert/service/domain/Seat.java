@@ -23,6 +23,8 @@ public class Seat {
 	private boolean isBooked;
 	private LocalDateTime date;
     private BigDecimal price;
+    @Version
+    private Long version;
 	
 	public Seat() {
 	}
@@ -41,6 +43,7 @@ public class Seat {
 	
 	public Seat(String label, BigDecimal price) {
 		this.label = label;
+		this.isBooked = false;
         this.price = price;
 	}
 	

@@ -22,7 +22,7 @@ public class Booking {
 	private long concertId;
 	private LocalDateTime date;
 	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "USER_ID", nullable = true)
 	private User user;
 	
