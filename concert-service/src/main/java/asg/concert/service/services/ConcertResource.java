@@ -4,7 +4,9 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import javax.persistence.Access;
 import javax.persistence.EntityManager;
+import javax.persistence.SynchronizationType;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
@@ -29,6 +31,7 @@ import asg.concert.service.common.Config;
 public class ConcertResource {
 	private static Logger LOGGER = LoggerFactory.getLogger(ConcertResource.class);
 	EntityManager em = PersistenceManager.instance().createEntityManager();
+	private static final List<AsyncResponse> subs = new ArrayList<AsyncResponse>();
 	
 	@GET
 	@Path("concerts/{id}")
@@ -347,29 +350,8 @@ public class ConcertResource {
 	}
 
 	@GET
-	@Path("/subscribe/concertInfo")
-	public Response subscription(@Suspended AsyncResponse sub, @CookieParam("auth") Cookie clientId, ConcertInfoSubscriptionDTO dto){
-		if(clientId == null)
-			return Response
-					.status(Response.Status.UNAUTHORIZED)
-					.cookie(makeCookie(clientId))
-					.build();
-		GenericEntity<List<ConcertInfoSubscriptionDTO>> subs = new GenericEntity<List<ConcertInfoSubscriptionDTO>>(dto) {};
-		try {
-			em.getTransaction().begin();
-			User user = em.find(User.class, Long.parseLong(clientId.getValue()));
-
-			ConcertInfoSubscription subs = em.find(ConcertInfoSubscription.class, dto.getPercentageBooked());
-
-		}
-		finally {
-			em.close();
-		}
-	}
-
-	@GET
-	@Path("/subscribe/concertInfo")
-	public Response makeSubscription(@Suspended AsyncResponse sub, @CookieParam("auth") Cookie clientId){
+	public Response makeSubscription(@CookieParam("auth") Cookie clientId){
+		LOGGER.info("makesubcalled called");
 		if(clientId == null)
 			return Response
 					.status(Response.Status.UNAUTHORIZED)
@@ -377,25 +359,61 @@ public class ConcertResource {
 					.build();
 		User user;
 		try {
-			subs.add(sub);
+			em.getTransaction().begin();
+			user = em.find(User.class, Long.parseLong(clientId.getValue()));
+			synchronized (subs){
+				for (int i = 0; i < user.getSubscriptions().size(); i++) {
+					ConcertInfoSubscriptionDTO subdto = user.getSubscriptions().get(i);
+					List<Seat> seats = em.createQuery("select s from seats s where s.date = '" +
+							subdto.getDate().toString() + "' and s.isBooked = :isBooked", Seat.class).setParameter("isBooked", true).getResultList();
+					if(seats.isEmpty() == true || em.find(Concert.class, subdto.getConcertId()) == null)
+						return Response
+								.status(Response.Status.BAD_REQUEST)
+								.cookie(makeCookie(clientId))
+								.build();
+					if((seats.size()/120)*100 >= subdto.getPercentageBooked()){
+						ConcertInfoNotificationDTO dto = new ConcertInfoNotificationDTO(120 - seats.size());
+						subs.get(i).resume(dto);
+					}
+				}
+			}
+			em.getTransaction().commit();
+			return Response.ok().cookie(makeCookie(clientId)).build();
+		}
+		catch(NumberFormatException e) {
+			return Response
+					.status(Response.Status.UNAUTHORIZED)
+					.cookie(makeCookie(clientId))
+					.build();
 		}
 		finally {
-
+			em.close();
 		}
 	}
 
 
 	@POST
 	@Path("/subscribe/concertInfo")
-	public Response concertNotify(ConcertInfoNotificationDTO dto){
+	public void subscriptionNotify(@Suspended AsyncResponse sub,@CookieParam("auth") Cookie clientId, ConcertInfoSubscriptionDTO dto){
+		if(clientId == null)
+			throw new WebApplicationException(Response
+					.status(Response.Status.UNAUTHORIZED)
+					.cookie(makeCookie(clientId))
+					.build());
+		User user;
 		try {
 			em.getTransaction().begin();
-			synchronized (subs){
-				for(AsyncResponse sub : subs){
-					if (sub.getPercentageBooked() >= dto.getNumSeatsRemaining())
-
-				}
-			}
+			user = em.find(User.class, Long.parseLong(clientId.getValue()));
+			user.addSubscriptions(dto);
+			subs.add(sub);
+			em.merge(user);
+			em.getTransaction().commit();
+		}
+		catch(NumberFormatException e) {
+			throw new WebApplicationException(Response
+					.status(Response.Status.UNAUTHORIZED)
+					.cookie(makeCookie(clientId))
+					.build());
 		}
 		finally {
 			em.close();

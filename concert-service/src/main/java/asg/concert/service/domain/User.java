@@ -1,7 +1,9 @@
 package asg.concert.service.domain;
 
 import javax.persistence.*;
+import javax.ws.rs.container.AsyncResponse;
 
+import asg.concert.common.dto.ConcertInfoSubscriptionDTO;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -21,8 +23,7 @@ public class User {
 	@Version
 	private Long version;
 
-    @OneToMany
-    private ArrayList<ConcertInfoSubscription> subs = new ArrayList<ConcertInfoSubscription>();
+    private ArrayList<ConcertInfoSubscriptionDTO> subs = new ArrayList<ConcertInfoSubscriptionDTO>();
 	
 	public User() {}
 	
@@ -60,11 +61,11 @@ public class User {
     	this.password = password;
     }
 
-    public ArrayList<ConcertInfoSubscription> getSubscriptions() {
+    public ArrayList<ConcertInfoSubscriptionDTO> getSubscriptions() {
         return subs;
     }
 
-    public void addSubscriptions(ConcertInfoSubscription sub) {
+    public void addSubscriptions(ConcertInfoSubscriptionDTO sub) {
         this.subs.add(sub);
     }
 
