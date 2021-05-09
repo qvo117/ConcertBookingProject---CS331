@@ -352,14 +352,17 @@ public class ConcertResourceIT {
 
         // Log in
         login(client, "testuser", "pa55word");
+        LOGGER.info("Logged in");
 
         // Make booking
         Response bookingResponse = attemptBooking(client, 1,
                 LocalDateTime.of(2020, 2, 15, 20, 0, 0),
                 "C5", "C6");
+        LOGGER.info("Made booking at " + bookingResponse.getLocation().toString());
 
         // Get the booking
         BookingDTO booking = client.target(bookingResponse.getLocation()).request().get(BookingDTO.class);
+        LOGGER.info("Got booking");
 
         // Check details
         assertEquals(1L, booking.getConcertId());
@@ -381,23 +384,28 @@ public class ConcertResourceIT {
 
         // Log in
         login(client, "testuser", "pa55word");
-
+        LOGGER.info("Logged in");
+        
         // Make booking
         Response bookingResponse = attemptBooking(client, 1,
                 LocalDateTime.of(2020, 2, 15, 20, 0, 0),
                 "C5", "C6");
+        LOGGER.info("Made booking");
 
         // Get the booking
         Response response = client.target(bookingResponse.getLocation())
                 .request().get();
+        LOGGER.info("Got booking");
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
         // Log in as someone else
         login(client, "testuser2", "pa55word");
+        LOGGER.info("Logged in as different user");
 
         // Attempt to get the booking - should fail
         response = client.target(bookingResponse.getLocation())
                 .request().get();
+        LOGGER.info("Failed to get booking");
 
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
 
@@ -560,22 +568,26 @@ public class ConcertResourceIT {
     	LOGGER.info("testAttemptDoubleBooking_OverlappingSeats");
         // Log in as user 1
         login(client, "testuser", "pa55word");
+        LOGGER.info("---USER 1 LOGGED IN---");
 
         // Make bookings for user 1
         Response response = attemptBooking(client, 1,
                 LocalDateTime.of(2020, 2, 15, 20, 0, 0),
                 "C5", "C6");
         assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        LOGGER.info("---USER 1 BOOKINGS MADE---");
 
         // Log in as user 2
         Client user2Client = ClientBuilder.newClient();
         try {
             login(user2Client, "testuser2", "pa55word");
+            LOGGER.info("---USER 2 LOGGED IN---");
 
             // Try to make the same booking for user 2 - it should fail.
             response = attemptBooking(user2Client, 1,
                     LocalDateTime.of(2020, 2, 15, 20, 0, 0),
                     "C6", "C7");
+            LOGGER.info("---USER 2 BOOKING ATTEMPT MADE---");
             assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
             assertNull(response.getLocation());
 
@@ -585,6 +597,7 @@ public class ConcertResourceIT {
             List<BookingDTO> user1Bookings = client.target(WEB_SERVICE_URI + "/bookings")
                     .request().get(new GenericType<List<BookingDTO>>() {
                     });
+            LOGGER.info("---USER 1 BOOKINGS RETRIEVED---");
             assertEquals(1, user1Bookings.size());
 
 
@@ -592,6 +605,7 @@ public class ConcertResourceIT {
             List<BookingDTO> user2Bookings = user2Client.target(WEB_SERVICE_URI + "/bookings")
                     .request().get(new GenericType<List<BookingDTO>>() {
                     });
+            LOGGER.info("---USER 2 BOOKINGS RETRIEVED---");
             assertEquals(0, user2Bookings.size());
         } finally {
             user2Client.close();
@@ -606,6 +620,7 @@ public class ConcertResourceIT {
         bookedSeats.sort(Comparator.comparing(SeatDTO::getLabel));
         assertEquals("C5", bookedSeats.get(0).getLabel());
         assertEquals("C6", bookedSeats.get(1).getLabel());
+        LOGGER.info("---TESTATTEMPTDOUBLEBOOKINGOVERLAPPING DONE---");
 
     }
 

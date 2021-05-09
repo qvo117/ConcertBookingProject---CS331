@@ -42,6 +42,14 @@ public class Booking {
 	public Booking(long concertId, LocalDateTime date, List<Seat> seats) {
         this(null, concertId, date, seats);
     }
+	
+	public Long getId() {
+		return id;
+	}
+	
+	public void setId(Long id) {
+		this.id = id;
+	}
 
     public long getConcertId() {
         return concertId;
