@@ -7,6 +7,8 @@ import java.util.*;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.*;
 
 import asg.concert.common.dto.*;
@@ -337,6 +339,80 @@ public class ConcertResource {
 						.status(Response.Status.UNAUTHORIZED)
 						.cookie(makeCookie(clientId))
 						.build();
+			}
+		}
+		finally {
+			em.close();
+		}
+	}
+	ExecutorService threadpool = Executors.newCachedThreadPool();
+
+	@GET
+	@Path("/subscribe/concertInfo")
+	public Response subscription(@PathParam("date") String dateString, @CookieParam("clientId") Cookie clientId,
+								 ConcertInfoSubscriptionDTO dto, @Suspended AsyncResponse sub){
+		try {
+			em.getTransaction().begin();
+			threadpool.submit(() -> {
+
+					}
+
+			)
+		}
+		finally {
+			em.close();
+		}
+	}
+
+	@GET
+	@Path("/subscribe/concertInfo")
+	public Response subscription(@Suspended AsyncResponse sub, @CookieParam("auth") Cookie clientId, ConcertInfoSubscriptionDTO dto){
+		if(clientId == null)
+			return Response
+					.status(Response.Status.UNAUTHORIZED)
+					.cookie(makeCookie(clientId))
+					.build();
+		GenericEntity<List<ConcertInfoSubscriptionDTO>> subs = new GenericEntity<List<ConcertInfoSubscriptionDTO>>(dto) {};
+		try {
+			em.getTransaction().begin();
+			User user = em.find(User.class, Long.parseLong(clientId.getValue()));
+
+			ConcertInfoSubscription subs = em.find(ConcertInfoSubscription.class, dto.getPercentageBooked());
+
+		}
+		finally {
+			em.close();
+		}
+	}
+
+	@GET
+	@Path("/subscribe/concertInfo")
+	public Response makeSubscription(@Suspended AsyncResponse sub, @CookieParam("auth") Cookie clientId){
+		if(clientId == null)
+			return Response
+					.status(Response.Status.UNAUTHORIZED)
+					.cookie(makeCookie(clientId))
+					.build();
+		User user;
+		try {
+			subs.add(sub);
+		}
+		finally {
+
+		}
+	}
+
+
+	@POST
+	@Path("/subscribe/concertInfo")
+	public Response concertNotify(ConcertInfoNotificationDTO dto){
+		try {
+			em.getTransaction().begin();
+			synchronized (subs){
+				for(AsyncResponse sub : subs){
+					if (sub.getPercentageBooked() >= dto.getNumSeatsRemaining())
+
+				}
 			}
 		}
 		finally {

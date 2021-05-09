@@ -5,6 +5,8 @@ import javax.persistence.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.ArrayList;
+
 @Entity
 @Table(name = "USERS")
 public class User {
@@ -17,6 +19,9 @@ public class User {
 
 	@Version
 	private Long version;
+
+    @OneToMany
+    private ArrayList<ConcertInfoSubscription> subs = new ArrayList<ConcertInfoSubscription>();
 	
 	public User() {}
 	
