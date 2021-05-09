@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 @Entity
 @Table(name = "USERS")
@@ -58,7 +59,15 @@ public class User {
     public void setPassword(String password) {
     	this.password = password;
     }
-    
+
+    public ArrayList<ConcertInfoSubscription> getSubscriptions() {
+        return subs;
+    }
+
+    public void addSubscriptions(ConcertInfoSubscription sub) {
+        this.subs.add(sub);
+    }
+
     @Override
     public String toString() {
         StringBuffer buffer = new StringBuffer();

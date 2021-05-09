@@ -345,24 +345,6 @@ public class ConcertResource {
 			em.close();
 		}
 	}
-	ExecutorService threadpool = Executors.newCachedThreadPool();
-
-	@GET
-	@Path("/subscribe/concertInfo")
-	public Response subscription(@PathParam("date") String dateString, @CookieParam("clientId") Cookie clientId,
-								 ConcertInfoSubscriptionDTO dto, @Suspended AsyncResponse sub){
-		try {
-			em.getTransaction().begin();
-			threadpool.submit(() -> {
-
-					}
-
-			)
-		}
-		finally {
-			em.close();
-		}
-	}
 
 	@GET
 	@Path("/subscribe/concertInfo")
