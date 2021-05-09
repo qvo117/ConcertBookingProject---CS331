@@ -12,7 +12,7 @@ Our team continued to discuss, and Michael fixed the remaining bookings endpoint
 Daniel worked on the subscribe endpoint, and we continued to work together.
 
 Point #2:
-We minimised the chance of concurrency errors by checking if the seats that the user wanted to book were already booked by another user.
+We minimised the chance of concurrency errors by using optimistic concurrency control on the seats so that two concurrent transactions cannot book the same seats using version control, only the first transaction will book it.
 We used synchronisation to protect the subscription lists from being accessed by multiple threads at the same time.
 
 Point #3:
